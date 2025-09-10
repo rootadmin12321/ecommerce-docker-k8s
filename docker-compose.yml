@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+
+  web_frontend:
+    build: ./frontend
+    image: root938/ecommerce_frontend
+    container_name: ecommerce_frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - ecommerce-app    
+  web_backend: 
+    image: root938/ecommerce_backend
+    container_name: ecommerce_backend
+    ports:
+      - "5000:5000"
+    networks:
+      - ecommerce-app
+  db:
+    image: postgres:15
+    container_name: ecommerce_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ecomdb
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ecommerce-app
+volumes:
+  db_data:
+
+networks:
+  ecommerce-app:

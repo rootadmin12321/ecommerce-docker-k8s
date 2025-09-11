@@ -2,7 +2,8 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
-import pool from "./db.js"; // your PostgreSQL pool connection
+import pool from "./db.js";
+
 import authRoutes from "./routes/auth.js";
 import productsRoutes from "./routes/products.js";
 import cartRoutes from "./routes/cart.js";
@@ -23,10 +24,10 @@ app.use("/api/orders", ordersRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-// Initialize database: create tables and seed products
+// Initialize DB: create tables & seed products
 const initDB = async () => {
   try {
-    // 1️⃣ Create tables if not exist
+    // USERS
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -34,7 +35,10 @@ const initDB = async () => {
         email VARCHAR(200) UNIQUE,
         password TEXT
       );
+    `);
 
+    // PRODUCTS
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255),
@@ -43,21 +47,30 @@ const initDB = async () => {
         image_url TEXT,
         stock INT DEFAULT 0
       );
+    `);
 
+    // CART
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS cart (
         id SERIAL PRIMARY KEY,
         user_id INT REFERENCES users(id) ON DELETE CASCADE,
         product_id INT REFERENCES products(id) ON DELETE CASCADE,
         quantity INT DEFAULT 1
       );
+    `);
 
+    // ORDERS
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         user_id INT REFERENCES users(id) ON DELETE SET NULL,
         address TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
 
+    // ORDER ITEMS
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS order_items (
         id SERIAL PRIMARY KEY,
         order_id INT REFERENCES orders(id) ON DELETE CASCADE,
@@ -66,7 +79,7 @@ const initDB = async () => {
       );
     `);
 
-    // 2️⃣ Seed sample products if table is empty
+    // Seed sample products if table empty
     const { rows } = await pool.query("SELECT COUNT(*) FROM products");
     if (parseInt(rows[0].count) === 0) {
       await pool.query(`
@@ -87,7 +100,7 @@ const initDB = async () => {
   }
 };
 
-// Start server after DB initialization
+// Start server
 initDB().then(() => {
   app.listen(PORT, () => console.log(`🚀 Backend running on http://localhost:${PORT}`));
 });

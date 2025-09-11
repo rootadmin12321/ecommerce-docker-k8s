@@ -10,8 +10,9 @@ services:
     networks:
       - ecommerce-app    
   web_backend: 
-    image: root938/ecommerce_backend
-    container_name: ecommerce_backend
+    build: ./backend
+    # image: root938/ecommerce_backend
+    container_name: root938/ecommerce_backend
     ports:
       - "5000:5000"
     networks:
